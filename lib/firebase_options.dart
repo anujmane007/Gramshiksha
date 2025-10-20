@@ -68,7 +68,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'API KEY',
+    apiKey: 'AIzaSyDzRFmT3VXkw5SOjoQaJ76NsP00ewSeX-8',
     appId: '1:126258513899:ios:24c44fc2783bb69cca7bae',
     messagingSenderId: '126258513899',
     projectId: 'learn-sphere-703fa',
@@ -77,7 +77,7 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'API KEY',
+    apiKey: 'AIzaSyAB965ytbdzqyVGqMno4x5thf3XTEwtPP8',
     appId: '1:126258513899:web:4b0c53f3580d4839ca7bae',
     messagingSenderId: '126258513899',
     projectId: 'learn-sphere-703fa',
