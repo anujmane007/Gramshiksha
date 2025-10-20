@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "126258513899",
+    "project_id": "learn-sphere-703fa",
+    "storage_bucket": "learn-sphere-703fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:126258513899:android:f03ceda88ef90558ca7bae",
+        "android_client_info": {
+          "package_name": "com.example.learnsphere"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCqE5cIEOoeZMB1CNNtQC_Au8Yrv-oW2ZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
