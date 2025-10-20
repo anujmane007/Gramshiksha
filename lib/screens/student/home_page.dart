@@ -22,42 +22,41 @@ class _StudentHomePageState extends State<StudentHomePage> {
       appBar: AppBar(
         title: Text(
           'Gramshiksha',
-          style: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.bold),
+          style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold),
         ),
         backgroundColor: const Color(0xFF6366F1),
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications_rounded),
-            onPressed: () {
-              // TODO: Navigate to notifications
-            },
+            icon: const Icon(Icons.notifications_rounded, size: 22),
+            onPressed: () {},
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+      body: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Welcome Section
-            _buildWelcomeCard(),
-            const SizedBox(height: 20),
-
-            // Performance Dashboard
-            _buildPerformanceDashboard(),
-            const SizedBox(height: 20),
-
-            // Quick Actions
-            _buildQuickActions(),
-            const SizedBox(height: 20),
-
-            // Recent Activities
-            _buildRecentActivities(),
-            const SizedBox(height: 20),
-
-            // Progress Overview
-            _buildProgressOverview(),
+            // Fixed height container that will never overflow
+            Expanded(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  children: [
+                    _buildWelcomeCard(),
+                    const SizedBox(height: 16),
+                    _buildPerformanceDashboard(),
+                    const SizedBox(height: 16),
+                    _buildQuickActions(),
+                    const SizedBox(height: 16),
+                    _buildRecentActivities(),
+                    const SizedBox(height: 16),
+                    _buildProgressOverview(),
+                    const SizedBox(height: 8), // Small bottom padding
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -67,74 +66,59 @@ class _StudentHomePageState extends State<StudentHomePage> {
   Widget _buildWelcomeCard() {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF6366F1).withOpacity(0.3),
-            spreadRadius: 0,
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(16),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                backgroundColor: Colors.white.withOpacity(0.2),
-                child: Text(
-                  _auth.currentUser?.displayName
-                          ?.substring(0, 1)
-                          .toUpperCase() ??
-                      'S',
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.white.withOpacity(0.2),
+            child: Text(
+              _auth.currentUser?.displayName?.substring(0, 1).toUpperCase() ??
+                  'S',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Welcome back!',
                   style: GoogleFonts.poppins(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 12,
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back!',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withOpacity(0.9),
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      _auth.currentUser?.displayName ?? 'Student',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
+                Text(
+                  _auth.currentUser?.displayName ?? 'Student',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Ready to continue your learning journey?',
-            style: GoogleFonts.poppins(
-              color: Colors.white.withOpacity(0.9),
-              fontSize: 16,
+                const SizedBox(height: 4),
+                Text(
+                  'Ready to continue your learning journey?',
+                  style: GoogleFonts.poppins(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 12,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -151,69 +135,67 @@ class _StudentHomePageState extends State<StudentHomePage> {
               .snapshots(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
+          return _buildLoadingStats();
         }
 
-        Map<String, dynamic> userData =
-            snapshot.data!.data() as Map<String, dynamic>? ?? {};
-        int totalScore = userData['totalScore'] ?? 0;
-        int quizzesTaken = userData['quizzesTaken'] ?? 0;
-        int assignmentsSubmitted = userData['assignmentsSubmitted'] ?? 0;
-        List coursesEnrolled = userData['coursesEnrolled'] ?? [];
+        final userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+        final stats = [
+          _StatItem(
+            'Total Score',
+            userData['totalScore']?.toString() ?? '0',
+            Icons.stars_rounded,
+            const Color(0xFFEF4444),
+          ),
+          _StatItem(
+            'Quizzes Taken',
+            userData['quizzesTaken']?.toString() ?? '0',
+            Icons.quiz_rounded,
+            const Color(0xFF10B981),
+          ),
+          _StatItem(
+            'Assignments',
+            userData['assignmentsSubmitted']?.toString() ?? '0',
+            Icons.assignment_turned_in_rounded,
+            const Color(0xFF3B82F6),
+          ),
+          _StatItem(
+            'Courses',
+            (userData['coursesEnrolled']?.length ?? 0).toString(),
+            Icons.school_rounded,
+            const Color(0xFF8B5CF6),
+          ),
+        ];
 
         return Card(
-          elevation: 8,
+          elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Performance Dashboard',
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                GridView.count(
+                const SizedBox(height: 16),
+                GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                  childAspectRatio: 1.2,
-                  children: [
-                    _buildStatCard(
-                      'Total Score',
-                      totalScore.toString(),
-                      Icons.stars_rounded,
-                      const Color(0xFFEF4444),
-                    ),
-                    _buildStatCard(
-                      'Quizzes Taken',
-                      quizzesTaken.toString(),
-                      Icons.quiz_rounded,
-                      const Color(0xFF10B981),
-                    ),
-                    _buildStatCard(
-                      'Assignments',
-                      assignmentsSubmitted.toString(),
-                      Icons.assignment_turned_in_rounded,
-                      const Color(0xFF3B82F6),
-                    ),
-                    _buildStatCard(
-                      'Courses',
-                      coursesEnrolled.length.toString(),
-                      Icons.school_rounded,
-                      const Color(0xFF8B5CF6),
-                    ),
-                  ],
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 1.6, // More rectangular cards
+                  ),
+                  itemCount: stats.length,
+                  itemBuilder:
+                      (context, index) => _buildCompactStatCard(stats[index]),
                 ),
               ],
             ),
@@ -223,43 +205,56 @@ class _StudentHomePageState extends State<StudentHomePage> {
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
+  Widget _buildLoadingStats() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      ),
+    );
+  }
+
+  Widget _buildCompactStatCard(_StatItem stat) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        color: stat.color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: stat.color.withOpacity(0.2)),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: Colors.white, size: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: stat.color,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(stat.icon, color: Colors.white, size: 16),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                stat.value,
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: stat.color,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 4),
           Text(
-            value,
-            style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            title,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+            stat.title,
+            style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey[600]),
             textAlign: TextAlign.center,
+            maxLines: 1,
           ),
         ],
       ),
@@ -267,78 +262,61 @@ class _StudentHomePageState extends State<StudentHomePage> {
   }
 
   Widget _buildQuickActions() {
+    final actions = [
+      _ActionItem(
+        'Take Quiz',
+        Icons.quiz_rounded,
+        const Color(0xFF10B981),
+        () {},
+      ),
+      _ActionItem(
+        'My Courses',
+        Icons.school_rounded,
+        const Color(0xFF3B82F6),
+        () {},
+      ),
+      _ActionItem(
+        'Leaderboard',
+        Icons.leaderboard_rounded,
+        const Color(0xFFEF4444),
+        () {},
+      ),
+      _ActionItem(
+        'Profile',
+        Icons.person_rounded,
+        const Color(0xFF8B5CF6),
+        () {},
+      ),
+    ];
+
     return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Quick Actions',
               style: GoogleFonts.poppins(
-                fontSize: 20,
+                fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF1F2937),
               ),
             ),
-            const SizedBox(height: 16),
-
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    'Take Quiz',
-                    Icons.quiz_rounded,
-                    const Color(0xFF10B981),
-                    () {
-                      // Navigate to quiz page
-                      DefaultTabController.of(context).animateTo(2);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    'My Courses',
-                    Icons.school_rounded,
-                    const Color(0xFF3B82F6),
-                    () {
-                      // Navigate to courses page
-                      DefaultTabController.of(context).animateTo(1);
-                    },
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    'Leaderboard',
-                    Icons.leaderboard_rounded,
-                    const Color(0xFFEF4444),
-                    () {
-                      // Navigate to leaderboard
-                      DefaultTabController.of(context).animateTo(4);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    'Profile',
-                    Icons.person_rounded,
-                    const Color(0xFF8B5CF6),
-                    () {
-                      // Navigate to profile
-                      DefaultTabController.of(context).animateTo(3);
-                    },
-                  ),
-                ),
-              ],
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 2.2, // Even more rectangular
+              ),
+              itemCount: actions.length,
+              itemBuilder:
+                  (context, index) => _buildCompactActionButton(actions[index]),
             ),
           ],
         ),
@@ -346,40 +324,35 @@ class _StudentHomePageState extends State<StudentHomePage> {
     );
   }
 
-  Widget _buildActionButton(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
+  Widget _buildCompactActionButton(_ActionItem action) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: action.onTap,
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.3)),
+          color: action.color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: action.color.withOpacity(0.2)),
         ),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(12),
+                color: action.color,
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(icon, color: Colors.white, size: 24),
+              child: Icon(action.icon, color: Colors.white, size: 14),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(width: 6),
             Text(
-              title,
+              action.title,
               style: GoogleFonts.poppins(
-                fontSize: 14,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
-                color: color,
+                color: action.color,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -389,10 +362,10 @@ class _StudentHomePageState extends State<StudentHomePage> {
 
   Widget _buildRecentActivities() {
     return Card(
-      elevation: 8,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -402,18 +375,16 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 Text(
                   'Recent Activities',
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1F2937),
                   ),
                 ),
                 TextButton(
-                  onPressed: () {
-                    // Navigate to full activities
-                  },
+                  onPressed: () {},
                   child: Text(
                     'View All',
                     style: GoogleFonts.poppins(
+                      fontSize: 12,
                       color: const Color(0xFF6366F1),
                       fontWeight: FontWeight.w500,
                     ),
@@ -421,124 +392,125 @@ class _StudentHomePageState extends State<StudentHomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-
+            const SizedBox(height: 12),
             StreamBuilder<QuerySnapshot>(
               stream:
                   _firestore
                       .collection('quiz_results')
                       .where('studentId', isEqualTo: _auth.currentUser!.uid)
                       .orderBy('completedAt', descending: true)
-                      .limit(3)
+                      .limit(2) // Reduced to 2 items
                       .snapshots(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                  return Container(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.history_rounded,
-                          size: 48,
-                          color: Colors.grey[400],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No recent activities',
-                          style: GoogleFonts.poppins(
-                            fontSize: 16,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildNoActivities();
                 }
 
                 return Column(
                   children:
                       snapshot.data!.docs.map((doc) {
-                        Map<String, dynamic> result =
-                            doc.data() as Map<String, dynamic>;
-                        double percentage =
+                        final result = doc.data() as Map<String, dynamic>;
+                        final percentage =
                             (result['score'] / result['totalQuestions']) * 100;
 
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.grey[50],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color:
-                                      percentage >= 70
-                                          ? Colors.green
-                                          : Colors.orange,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Icon(
-                                  Icons.quiz_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      result['quizTitle'] ?? 'Quiz',
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    Text(
-                                      'Score: ${result['score']}/${result['totalQuestions']}',
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color:
-                                      percentage >= 70
-                                          ? Colors.green
-                                          : Colors.orange,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${percentage.toStringAsFixed(0)}%',
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
+                        return _buildCompactActivityItem(result, percentage);
                       }).toList(),
                 );
               },
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildNoActivities() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Icon(Icons.history_rounded, size: 32, color: Colors.grey[400]),
+          const SizedBox(height: 8),
+          Text(
+            'No recent activities',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactActivityItem(
+    Map<String, dynamic> result,
+    double percentage,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color:
+                  percentage >= 70
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFF59E0B),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Icon(
+              Icons.quiz_rounded,
+              color: Colors.white,
+              size: 12,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  result['quizTitle'] ?? 'Quiz',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                Text(
+                  'Score: ${result['score']}/${result['totalQuestions']}',
+                  style: GoogleFonts.poppins(
+                    fontSize: 9,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color:
+                  percentage >= 70
+                      ? const Color(0xFF10B981)
+                      : const Color(0xFFF59E0B),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              '${percentage.toStringAsFixed(0)}%',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 9,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -551,129 +523,70 @@ class _StudentHomePageState extends State<StudentHomePage> {
               .where('studentId', isEqualTo: _auth.currentUser!.uid)
               .snapshots(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) {
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
           return const SizedBox.shrink();
         }
 
-        List<QueryDocumentSnapshot> results = snapshot.data!.docs;
-        if (results.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        // Calculate average performance
-        double totalPercentage = 0;
-        for (var doc in results) {
-          Map<String, dynamic> result = doc.data() as Map<String, dynamic>;
-          double percentage =
-              (result['score'] / result['totalQuestions']) * 100;
-          totalPercentage += percentage;
-        }
-        double averagePerformance = totalPercentage / results.length;
+        final results = snapshot.data!.docs;
+        final totalPercentage = results.fold<double>(0, (sum, doc) {
+          final result = doc.data() as Map<String, dynamic>;
+          return sum + (result['score'] / result['totalQuestions']) * 100;
+        });
+        final averagePerformance = totalPercentage / results.length;
+        final passedCount =
+            results.where((doc) {
+              final result = doc.data() as Map<String, dynamic>;
+              return (result['score'] / result['totalQuestions']) * 100 >= 70;
+            }).length;
 
         return Card(
-          elevation: 8,
+          elevation: 4,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(16),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Progress Overview',
                   style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: const Color(0xFF1F2937),
                   ),
                 ),
-                const SizedBox(height: 20),
-
+                const SizedBox(height: 16),
                 Center(
                   child: CircularPercentIndicator(
-                    radius: 80.0,
-                    lineWidth: 12.0,
-                    animation: true,
+                    radius: 50,
+                    lineWidth: 8,
                     percent: averagePerformance / 100,
-                    center: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '${averagePerformance.toStringAsFixed(1)}%',
-                          style: GoogleFonts.poppins(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF6366F1),
-                          ),
-                        ),
-                        Text(
-                          'Average',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+                    center: Text(
+                      '${averagePerformance.toStringAsFixed(0)}%',
+                      style: GoogleFonts.poppins(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFF6366F1),
+                      ),
                     ),
-                    circularStrokeCap: CircularStrokeCap.round,
                     progressColor: const Color(0xFF6366F1),
                     backgroundColor: Colors.grey[200]!,
                   ),
                 ),
                 const SizedBox(height: 16),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    Column(
-                      children: [
-                        Text(
-                          results.length.toString(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF10B981),
-                          ),
-                        ),
-                        Text(
-                          'Quizzes Completed',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+                    _buildProgressStat(
+                      'Completed',
+                      results.length.toString(),
+                      const Color(0xFF10B981),
                     ),
-                    Column(
-                      children: [
-                        Text(
-                          results
-                              .where((doc) {
-                                Map<String, dynamic> result =
-                                    doc.data() as Map<String, dynamic>;
-                                double percentage =
-                                    (result['score'] /
-                                        result['totalQuestions']) *
-                                    100;
-                                return percentage >= 70;
-                              })
-                              .length
-                              .toString(),
-                          style: GoogleFonts.poppins(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF3B82F6),
-                          ),
-                        ),
-                        Text(
-                          'Passed',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
+                    _buildProgressStat(
+                      'Passed',
+                      passedCount.toString(),
+                      const Color(0xFF3B82F6),
                     ),
                   ],
                 ),
@@ -684,4 +597,41 @@ class _StudentHomePageState extends State<StudentHomePage> {
       },
     );
   }
+
+  Widget _buildProgressStat(String label, String value, Color color) {
+    return Column(
+      children: [
+        Text(
+          value,
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.poppins(fontSize: 10, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatItem {
+  final String title;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  _StatItem(this.title, this.value, this.icon, this.color);
+}
+
+class _ActionItem {
+  final String title;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  _ActionItem(this.title, this.icon, this.color, this.onTap);
 }
