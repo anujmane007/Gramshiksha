@@ -11,6 +11,7 @@ plugins {
 android {
     namespace = "com.example.learnsphere"
     compileSdk = 36
+    compileSdk = 36
 
 
     compileOptions {
